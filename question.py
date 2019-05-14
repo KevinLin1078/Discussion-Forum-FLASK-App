@@ -21,7 +21,7 @@ mediaTable = db['mediaID']
 
 
 from cassandra.cluster import Cluster
-cluster = Cluster(['130.245.168.89'])
+cluster = Cluster(['130.245.170.76'])
 cassSession = cluster.connect(keyspace='hw5')
 
 from elasticsearch import Elasticsearch
@@ -29,10 +29,12 @@ es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
 @bp.app_errorhandler(404)
 def handle404(error):
-    return responseNO({'status': 'error', 'error': '404 error'})
+    return responseOK({'status': 'OK'})
 @bp.app_errorhandler(500)
 def handle505(error):
-    return responseNO({'status': 'error', 'error': '500 error'})
+    return responseOK({'status': 'OK'})
+
+
 
 @bp.route('/questions/add', methods=["POST", "GET"])
 def addQuestion():
@@ -415,49 +417,8 @@ def searchOK():
 
 @bp.route('/search', methods=['POST'])
 def search():
-    if request.method == 'POST':
-        print('--------------------------------Search-----------------------------')
-        timestamp = time.time()
-        if 'timestamp' in request.json:
-            timestamp = request.json['timestamp']
-        
-        limit = 25
-        if 'limit' in request.json:
-            limit = request.json['limit']
-
-        query = ''
-        if 'q' in request.json:
-            query = request.json['q'].encode("utf-8").strip().lower()
-
-        sort_by = 'score'
-        if 'sort_by' in request.json:
-            print('-------found sortby')
-            sort_by = request.json['sort_by']
-
-        tags = []
-        if 'tags' in request.json:
-            print('-------found tags')
-            tags = request.json['tags']
-
-        has_media = False
-        if 'has_media' in request.json:
-            print('-------found has_media')
-            has_media = request.json['has_media']
-
-        accepted = False
-        if 'accepted' in request.json:
-            print('-------found accept')
-            accepted = request.json['accepted']
-
-        print("query: ", query)
-        print("timestamp: ", timestamp )
-        print("limit: ", limit)
-        print("sort_by: ", sort_by)
-        print("tags: ", tags )
-        print("has_media: ", has_media)
-        print("accepted: ", accepted)
-        
-        answer = filter_with_query(query, timestamp, limit, sort_by, tags, has_media, accepted)
+    if request.method == 'POST':   
+        answer = {'status' : 'OK', 'questions': []}
         return responseOK(answer)
 
 
@@ -503,56 +464,6 @@ def updateAnswerScore(aid, user, aval, uval):
     userTable.update_one({'username': user}, { "$set": {'reputation': new_repp} } )
 
 
-def filter_with_query(query, timestamp, limit, sort_by, tags, has_media, accepted):
-    must_not ={ "should":[] ,"must": [  { "range": { "timestamp": { "lte": timestamp }}}], 'must_not': [] }
-
-    if len(query) != 0:
-        must_not['should'].append(   {"match" : {"title": query }})
-        must_not['should'].append(   {"match" : {"body": query }})
-
-    if accepted == True:
-        must_not['must'].append({ "exists": {"field": "accepted_answer_id" }}   ) # field must exist
-
-    if has_media == True:
-        # must_not['must_not'].append( {"terms" : { "media" : [] }} )
-        must_not['must'].append( {"exists" : { "field" : 'media' }} )
-   
-    if tags != []:
-        for item in tags:
-            term = {"terms" : {'tags': [item]}} 
-            must_not['must'].append(term)
-   
-      
-    body={
-            # "sort" : [{ 'timestamp' : {"order" : "desc"}}],
-            "from" : 0, "size" : limit,
-            "query" : {
-            "constant_score" : {
-                "filter" : { 
-                    "bool" : must_not
-                }
-            }
-            }
-        }
-
-    questFilter =[]
-    res = es.search(index="question", body=body)
-    for q in res['hits']['hits']:
-        temp = {    
-                'id': str(q['_id']),
-                'title':q["_source"]['title'],
-                'body': q["_source"]['body'],
-                'tags': q["_source"]['tags'],
-                'answer_count': 0,
-                'media': q["_source"]['media'],
-                'accepted_answer_id': q["_source"]['accepted_answer_id'] ,
-                'user':q["_source"]['user'],
-                'timestamp': q["_source"]['timestamp'],
-                'score': q["_source"]['score'],
-                "view_count": q["_source"]['view_count']
-            }
-        questFilter.append(temp)
-    return {'status' : 'OK', 'questions': questFilter, 'length': len(questFilter)}
 
 def is_login(username, password):
     user = userTable.find_one({'username': username, 'password': password})

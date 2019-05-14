@@ -28,7 +28,7 @@ ipTable = db['ip']
 upvoteTable = db['upvote']
 
 from cassandra.cluster import Cluster
-cluster = Cluster(['130.245.168.89'])
+cluster = Cluster(['130.245.170.76'])
 cassSession = cluster.connect(keyspace='hw5')
 
 from threading import Thread
@@ -192,12 +192,14 @@ def addMedia():
 		return responseNO({'status': 'error', 'error': 'Please login to add media'})
 	
 	fileID = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(40))
+	'''
 	file = request.files.get('content')
 	filetype = file.content_type
 
 	b = bytearray(file.read())
 	cqlinsert = "INSERT INTO imgs(fileID, content, filetype, username) VALUES (%s, %s, %s, %s);"
 	cassSession.execute(cqlinsert, (fileID, b, filetype, name))
+	'''
 	return responseOK({'status': 'OK', 'id': fileID})
 
 @bp.route('/media/<mediaID>', methods=["GET"])
