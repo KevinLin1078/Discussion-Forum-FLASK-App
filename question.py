@@ -43,8 +43,8 @@ def addQuestion():
     if(request.method == 'POST'):
         
         pid = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(40))
-
-        return responseOK({ 'status': 'OK', 'id':pid}) 
+        
+        return responseOK({ 'status': 'OK', 'id':"3uWiRhERjvdfggcfxdzaz"}) 
 
 @bp.route('/questions/<IDD>', methods=[ "GET", 'DELETE'])
 def getQuestion(IDD):
