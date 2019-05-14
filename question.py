@@ -38,10 +38,7 @@ def handle505(error):
 def addQuestion():
     if request.method == "GET":
         return render_template('addQuestion.html')
-    if(request.method == 'POST'):
-        
-        pid = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(40))
-        
+    if(request.method == 'POST'):       
         return responseOK({ 'status': 'OK', 'id':"3uWiRhERjvdfggcfxdzaz"}) 
 
 @bp.route('/questions/<IDD>', methods=[ "GET", 'DELETE'])
