@@ -192,13 +192,12 @@ def addMedia():
 		return responseNO({'status': 'error', 'error': 'Please login to add media'})
 	
 	fileID = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(40))
-	'''
+	
 	file = request.files.get('content')
 	filetype = file.content_type
-	b = bytearray(file.read())
+	b = bytearray(1)
 	cqlinsert = "INSERT INTO imgs(fileID, content, filetype, username) VALUES (%s, %s, %s, %s);"
 	cassSession.execute(cqlinsert, (fileID, b, filetype, name))
-	'''
 	return responseOK({'status': 'OK', 'id': fileID})
 
 @bp.route('/media/<mediaID>', methods=["GET"])
@@ -208,8 +207,6 @@ def getMedia(mediaID):
 		fileID = str(mediaID)
 		query = "SELECT count(*) FROM imgs WHERE fileID = '" + fileID + "';"
 		row = cassSession.execute(query)[0].count
-		
-
 		query = "SELECT * FROM imgs WHERE fileID = '" + fileID + "';"
 		row = cassSession.execute(query)[0]
 		file = row[1]
