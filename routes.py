@@ -209,8 +209,7 @@ def getMedia(mediaID):
 		fileID = str(mediaID)
 		query = "SELECT count(*) FROM imgs WHERE fileID = '" + fileID + "';"
 		row = cassSession.execute(query)[0].count
-		if row == 0:
-			return responseNO({'status':'error', 'error': 'Media Id does not exist'})
+		
 
 		query = "SELECT * FROM imgs WHERE fileID = '" + fileID + "';"
 		row = cassSession.execute(query)[0]
