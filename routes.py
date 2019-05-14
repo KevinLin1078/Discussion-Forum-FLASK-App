@@ -12,7 +12,13 @@ from bson.objectid import ObjectId
 app = Flask(__name__)
 client = MongoClient('130.245.168.89', 27017)
 
-
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] ='ktube110329@gmail.com'
+app.config['MAIL_PASSWORD']= '@12345678kn'
+mail = Mail(app)
 bp = Blueprint('routes', __name__, template_folder='templates')
 db = client.stack
 userTable = db['user'] 
@@ -20,6 +26,10 @@ answerTable = db['answer']
 questionTable = db['question']
 ipTable = db['ip']
 upvoteTable = db['upvote']
+
+from cassandra.cluster import Cluster
+cluster = Cluster(['130.245.170.76'])
+cassSession = cluster.connect(keyspace='hw5')
 
 from threading import Thread
 
@@ -109,17 +119,6 @@ def login():
 			return responseNO({'status': 'error', 'error':"Wrong key-email pair"})
 
 
-# @bp.route('/logout', methods=["POST", "GET"])
-# def logout():
-# 	if request.method =="POST":
-# 		try:
-# 			headers = {'Content-Type': 'application/json'}
-# 			response = make_response(jsonify({"status": "OK"}), 200, headers)
-# 			response.set_cookie('username', '', expires = 0)
-# 			response.set_cookie('password', '', expires = 0)
-# 			return response
-# 		except Exception as e:
-# 			return responseNO({'status': 'error'})
 
 
 @bp.route('/user/<getName>', methods=["GET"])
@@ -182,15 +181,17 @@ def addMedia():
 		return responseNO({'status': 'error', 'error': 'Please login to add media'})
 	
 	fileID = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(40))
+	
 	return responseOK({'status': 'OK', 'id': fileID})
 
 @bp.route('/media/<mediaID>', methods=["GET"])
 def getMedia(mediaID):
 	if request.method == 'GET':
 		print("GET MEDIA ", mediaID)
-		
+		fileID = str(mediaID)
 		file = None
 		response = make_response(file)
+		
 		return response
 
 
@@ -198,13 +199,7 @@ def getMedia(mediaID):
 def clean():
 	import clean
 	clean.clearMe()
-
-	query = "SELECT count(*) FROM imgs;"
-	cc = cassSession.execute(query)[0]
-	print(cc)
-	cqlinsert = "TRUNCATE imgs;"
-	cassSession.execute(cqlinsert)
-	return 'cleaned ' + str(cc)
+	return 'cleaned '
 
 
 def responseOK(stat):
