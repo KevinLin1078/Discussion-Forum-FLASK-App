@@ -18,6 +18,9 @@ app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USERNAME'] ='ktube110329@gmail.com'
 app.config['MAIL_PASSWORD']= '@12345678kn'
+
+
+
 mail = Mail(app)
 bp = Blueprint('routes', __name__, template_folder='templates')
 db = client.stack
@@ -183,18 +186,17 @@ def timectime(s):
 	return str(time.ctime(s))[3:19] # datetime.datetime.fromtimestamp(s)
 
 
-
+# app.config['MAX_CONTENT_LENGTH'] = 1600 * 1024 * 1024
 @bp.route('/addmedia', methods=["POST"])
 def addMedia():
-	name = request.cookies.get('token')
-	if not name:
-		print('Add Media User not logged in', (name))	
-		return responseNO({'status': 'error', 'error': 'Please login to add media'})
+	# name = request.cookies.get('token')
+	# if not name:
+	# 	print('Add Media User not logged in', (name))	
+	# 	return responseNO({'status': 'error', 'error': 'Please login to add media'})
 	
 	fileID = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(40))
-	
-	file = request.files.get('content')
-	filetype = file.content_type
+	# file = request.files.get('content')
+	filetype = 'application/json'
 	b = bytearray(1)
 	cqlinsert = "INSERT INTO imgs(fileID, content, filetype, username) VALUES (%s, %s, %s, %s);"
 	cassSession.execute(cqlinsert, (fileID, b, filetype, name))
