@@ -1,0 +1,116 @@
+<html> 
+    <head> 
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+        <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+        <link rel="stylesheet" href="../static/css/index.css">
+        <script src="../static/script/questionTable.js"></script>
+    <!------ Include the above in your HEAD tag ---------->
+    </head>  
+    <body >
+        <div class="container1">
+            
+            {% if login == 0  %}<button onclick="window.location.href='/login'"/> Login</button>{% endif %}
+			{% if login == 0  %}<button onclick="window.location.href='/adduser'"> Sign Up</button>{% endif %}
+            {% if login == 0  %}<button onclick="window.location.href='/verify'"> Verify</button>{% endif %}
+            {% if login == 1  %}<button onclick="window.location.href='/questions/add'" id='addQuestion' > Add Question</button>{% endif %}
+            {% if login == 1  %} <button id='logout'> Logout</button>{% endif %}
+            <h2>Stack All The Flow </h2>
+            {% if login == 1  %} <h3> Hello {{session['user']}}</h3>{% endif %}
+           
+        </div>
+                <div class="container col-md-12" >
+                    <div class="col-md-12">
+                        <div class="col-md-12">
+                            <div class="panel-heading">
+                                <div class="pull-right">
+                                    
+                                </div>
+                            </div>
+                            <div id="searchMe" class="panel-body" class="col-md-12">
+                                
+                                <span style='display: inline-block'>
+                                    <!-- <button id='clickme'>Search</button> -->
+                                    <input style='width:600px; height:35px; border-radius:5px; border-color: rgb(198, 221, 198)' type="text"  id="dev-table-filter" data-action="filter" data-filters="#dev-table" placeholder="Filter Question" />
+                                    <span><input class='tag_box' type="text" placeholder="Add Tags"/> </span> <input id="addTag" type='button' value="Add Tag"/> <input id="clearTag" type='button' value="Clear Tags"/> 
+                                    <select>
+                                        <option value="25">25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                        <option value="all">All</option>
+                                    </select>
+                                    
+                                    
+                                    
+                                </span>
+                                
+                                <span id='tagTable'>     </span>
+                                <!-- <span><input style='width:700px;'type="text" class="form-control" id="dev-table-filter" data-action="filter" data-filters="#dev-table" placeholder="Filter Question" /></span> -->
+                                
+                            </div>
+                            <table class="table table-hover" id="dev-table" style='font-size: 13px'>
+                                <thead>
+                                    <tr style='overflow: hidden'>
+                                        <th>    <a id='sortId'>#</a>            </th>
+                                        <th>    <a id='sortTitle'>Questions</a>    </th>
+                                        <th>    <a id='sortUser'>Tags</a>         </th>
+                                        <th>    <a id='sortDate'>Date</a>         </th>
+                                    </tr>
+                                </thead>
+                                <tbody id='queryInfo'>
+                                    {% set count = namespace(a=1) %}
+                                    {% for item in questionTable if count.a < 501 %}
+                                    <tr >
+                                        <th>{{count.a}}</th>
+                                        {% set count.a = count.a + 1 %}
+                                        <th onmouseover='' style='cursor: pointer'><a class='kevin' id="{{item['_id']}}">{{item['title']}} </a></th>
+                                        <th>{{ "[" + ", ".join(item['tags']) +"]"}}</th>
+                                        <th>{{item['timestamp'] | ctime}}</th>                                       
+                                    </tr> 
+                                    
+                                    {% endfor %}
+                                    
+                                    
+                                </tbody>
+                            </table>
+                            
+
+                        </div>
+                    </div>
+                    
+                </div>
+      
+       <div class='col-sm-10' id='actual_body' style='display: none;'>
+        <button id='back_button' style='font-size: 20px'>Back</button>
+            <div class='questionBody'>
+                
+                <h2 style='display:none' id='realQuestionID' ></h2>
+                <h4 class="font-weight-bold" style="color:green;" id='question_title'> Place Title Here</h4>
+                <span id='question_body' style='color:black; font-size: 11px;display:inline-block'>Place Body Here</span>                
+                <span style='float:right'>
+                    <i  id='goodQ' class="fa fa-thumbs-up"></i>
+                    <span id='voteCount'style='font-size: 20px'> Nana </span>
+                    <i  id='badQ' class="fa fa-thumbs-down"></i>
+                </span>
+            </div>
+            <br>
+            <div class='textarea'>
+                <textarea id='textarea' style='width:700px; height:70px' ></textarea><br>
+                <button style='font-size:17px;float:right'id='answer_submit'>Submit</button>
+            </div><br>
+            
+            <button style='display:none;' id='showAnswer'> See Answers</button>
+            <div id='answerTable' style='height: 80px; width:730px'> 
+                
+            
+            
+            </div>
+            
+        </div>
+
+
+        
+    </body>
+
+    </html>

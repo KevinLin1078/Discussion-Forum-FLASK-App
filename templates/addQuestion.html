@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Contact V9</title>
+   <meta charset="UTF-8">
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+		<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="../static/css/main.css">
+<!--===============================================================================================-->
+</head>
+<body>
+	<div class="container-contact100">
+		<div class="wrap-contact100">
+            <div class="container-contact100-form-btn">
+               <button align='center' onclick="window.location.href='/searchOK'" class="contact100-form-btn" > Home</button>
+            </div>
+            <form class="contact100-form validate-form">
+
+				<span class="contact100-form-title">
+					Contribute a Question
+				</span>
+
+				<div class="wrap-input100 validate-input" data-validate="Please enter your name">
+					<input id='title' class="input100" type="text" name="title" placeholder="Title">
+					<span class="focus-input100"></span>
+				</div>
+
+            <div class="wrap-input100 validate-input" data-validate="Enter questions tags">
+                  <input id='tags' class="input100" type="text" name="tags" placeholder="Tags">
+                  <span class="focus-input100"></span>
+            </div>
+            
+				<div class="wrap-input100 validate-input" data-validate = "Please enter your message">
+					<textarea id='body' class="input100" name="content" placeholder="Question content"></textarea>
+					<span class="focus-input100"></span>
+				</div>
+
+				<div class="container-contact100-form-btn">
+					<button class="contact100-form-btn" id="submit_question"> Submit</button>
+				</div>
+			</form>
+		
+      </div>
+      </div>
+
+</body>
+<script>
+   $(document).ready(function(){
+      $("#submit_question").click( 
+         function(e) {
+            var title = $("#title").val()
+            var tags = $("#tags").val()
+            var body = $("#body").val()
+            data={
+                  'title': title,
+                  'body': body,
+                  'tags' : tags
+               }
+               
+            $.ajax({
+               url: '/questions/add',
+               type: 'POST',
+               contentType:"application/json",
+               dataType:"json",
+               data: JSON.stringify(data),
+               success: function (data){
+                  
+                  window.location.href='/searchOK'
+               },
+               error: function(err){
+                  alert("ERROR OCCURED WHILE PUTTING USER " + err)
+               }
+            })
+
+            $(document).on("contextmenu",function(){
+                return false;
+                }); 
+                
+
+                $(document).bind('keydown', function(e) {
+                    if(e.ctrlKey && (e.which == 80)) {
+                    e.preventDefault();
+                    return false;
+                    }
+                });
+
+
+                $(document).bind('keydown', function(e) {
+                    if(e.ctrlKey && (e.which == 83)) {
+                    e.preventDefault();
+                    return false;
+                    }
+                });
+                document.onkeydown = function(e) {
+                    if(event.keyCode == 123) {
+                    return false;
+                    }
+                    if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)){
+                    return false;
+                    }
+                    if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)){
+                    return false;
+                    }
+                    if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)){
+                    return false;
+                    }
+                }
+
+      })
+   });
+
+
+</script>
+
+</html>

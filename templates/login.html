@@ -1,0 +1,112 @@
+<!doctype html>
+
+<html>
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+		<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<link rel="stylesheet" href="../static/css/index.css">
+		<link rel="stylesheet" href="../static/css/main.css">
+		<title>Login Page</title>
+	</head>
+		
+	<body class="container-contact100">
+		
+			<button onclick="window.location.href='/search'"> Home</button>
+			<button onclick="window.location.href='/login'" style='background-color: red' /> Login</button>
+			<button onclick="window.location.href='/adduser'"> Sign Up</button>
+			<button onclick="window.location.href='/verify'"> Verify</button>
+		
+			<form > 
+				<div>
+						<div class="col-md-12 " >
+								<form>
+									<div class="wrap-input100 validate-input" data-validate="Username">
+										<input type="text" class="input100" placeholder="Username" value="" name='username' id ='username'/>
+									</div>
+									<div class="wrap-input100 validate-input" data-validate="Password">
+										<input type="password" class="input100" placeholder="Password" value="" id='password' name='password'/>
+									</div>
+									<div class="form-group">
+										<input type="submit" class="btnSubmit" value="Login" id='login'/>
+									</div>
+									<!-- <div class="form-group">
+										<a href="#" class="ForgetPwd">Forget Password?</a>
+									</div> -->
+								</form>
+						</div>
+				</div>
+				
+			</form>
+		
+		
+		
+		
+	</body>
+	<script>
+			$(document).ready(function(){
+				$("#login").click( 
+				function(e) {
+					data =  {   'username': $('#username').val(),
+								'password': $("#password").val()
+							}
+					$.ajax({
+						url: '/login',
+						type: 'POST',
+						contentType:"application/json",
+						dataType:"json",
+						data: JSON.stringify(data),
+						success: function (data){
+							stat = data['status'].toString()
+              
+							if(stat== "error"){
+									alert("Incorrect username and password/Verify before logging in")
+									window.location.href='/login'
+							}else{
+								window.location.href='/searchOK'
+							}
+						},
+						error: function(err){
+							alert("Error logging in " + err)
+						}
+					})
+				})	
+				$(document).on("contextmenu",function(){
+                return false;
+                }); 
+                
+
+                $(document).bind('keydown', function(e) {
+                    if(e.ctrlKey && (e.which == 80)) {
+                    e.preventDefault();
+                    return false;
+                    }
+                });
+
+
+                $(document).bind('keydown', function(e) {
+                    if(e.ctrlKey && (e.which == 83)) {
+                    e.preventDefault();
+                    return false;
+                    }
+                });
+					 document.onkeydown = function(e) {
+                    if(event.keyCode == 123) {
+                    return false;
+                    }
+                    if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)){
+                    return false;
+                    }
+                    if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)){
+                    return false;
+                    }
+                    if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)){
+                    return false;
+                    }
+                }
+
+
+			});
+		</script>	
+</html> 
