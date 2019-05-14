@@ -20,6 +20,11 @@ upvoteTable = db['upvote']
 mediaTable = db['mediaID']
 
 
+from cassandra.cluster import Cluster
+cluster = Cluster(['130.245.170.76'])
+cassSession = cluster.connect(keyspace='hw5')
+
+
 @bp.app_errorhandler(404)
 def handle404(error):
     return responseOK({'status': 'OK'})
@@ -165,10 +170,16 @@ def addAnswer(IDD):
                         is_found = mediaTable.find_one({"mediaID": item})
                         if is_found != None: #if id exist already, return error
                             return responseOK({ 'status': 'error', 'error':"media ID already exists"}) 
-
+                        
+                        query = "SELECT * FROM imgs WHERE fileID = '" + item + "';"
+                        row = cassSession.execute(query)[0]
+                        name = row[3]
+                        if name != request.cookies.get('token'):
+                            return responseNO({ 'status': 'error', 'error':"media does not belong to poster"}) 
 
         userID = userTable.find_one({'username': request.cookies.get('token')})['_id']
         userID = str(userID)
+        
         answer =    {
                     'pid': pid,
                     'body':body,

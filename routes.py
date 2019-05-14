@@ -119,6 +119,17 @@ def login():
 			return responseNO({'status': 'error', 'error':"Wrong key-email pair"})
 
 
+# @bp.route('/logout', methods=["POST", "GET"])
+# def logout():
+# 	if request.method =="POST":
+# 		try:
+# 			headers = {'Content-Type': 'application/json'}
+# 			response = make_response(jsonify({"status": "OK"}), 200, headers)
+# 			response.set_cookie('username', '', expires = 0)
+# 			response.set_cookie('password', '', expires = 0)
+# 			return response
+# 		except Exception as e:
+# 			return responseNO({'status': 'error'})
 
 
 @bp.route('/user/<getName>', methods=["GET"])
@@ -181,7 +192,13 @@ def addMedia():
 		return responseNO({'status': 'error', 'error': 'Please login to add media'})
 	
 	fileID = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(40))
-	
+	'''
+	file = request.files.get('content')
+	filetype = file.content_type
+	b = bytearray(file.read())
+	cqlinsert = "INSERT INTO imgs(fileID, content, filetype, username) VALUES (%s, %s, %s, %s);"
+	cassSession.execute(cqlinsert, (fileID, b, filetype, name))
+	'''
 	return responseOK({'status': 'OK', 'id': fileID})
 
 @bp.route('/media/<mediaID>', methods=["GET"])
@@ -189,9 +206,16 @@ def getMedia(mediaID):
 	if request.method == 'GET':
 		print("GET MEDIA ", mediaID)
 		fileID = str(mediaID)
-		file = None
-		response = make_response(file)
+		query = "SELECT count(*) FROM imgs WHERE fileID = '" + fileID + "';"
+		row = cassSession.execute(query)[0].count
 		
+
+		query = "SELECT * FROM imgs WHERE fileID = '" + fileID + "';"
+		row = cassSession.execute(query)[0]
+		file = row[1]
+		filetype = row[2]
+		response = make_response(file)
+		response.headers.set('Content-Type', filetype)
 		return response
 
 
@@ -199,7 +223,13 @@ def getMedia(mediaID):
 def clean():
 	import clean
 	clean.clearMe()
-	return 'cleaned '
+
+	query = "SELECT count(*) FROM imgs;"
+	cc = cassSession.execute(query)[0]
+	print(cc)
+	cqlinsert = "TRUNCATE imgs;"
+	cassSession.execute(cqlinsert)
+	return 'cleaned ' + str(cc)
 
 
 def responseOK(stat):
