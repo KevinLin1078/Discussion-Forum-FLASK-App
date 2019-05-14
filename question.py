@@ -24,15 +24,15 @@ from cassandra.cluster import Cluster
 cluster = Cluster(['130.245.170.76'])
 cassSession = cluster.connect(keyspace='hw5')
 
-# from elasticsearch import Elasticsearch
-# es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+from elasticsearch import Elasticsearch
+es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
 @bp.app_errorhandler(404)
 def handle404(error):
-    return responseOK({'status': 'OK'})
+    return responseOK({'status': '404'})
 @bp.app_errorhandler(500)
 def handle505(error):
-    return responseOK({'status': 'OK'})
+    return responseOK({'status': '505'})
 
 
 
@@ -51,7 +51,6 @@ def addQuestion():
         tags = None
         media = []
         d = request.json
-        
 
         if 'media' in d:
             media = request.json['media']
@@ -80,9 +79,9 @@ def addQuestion():
         user_filter = userTable.find_one({'username': username})
         reputation = user_filter['reputation']
         question =  {
-                                    'user': {   'username': str(username),
-                                                        'reputation': reputation
-                                                    },
+                                    'user': {   'username': username,
+                                                'reputation': reputation
+                                            },
                                     'title': title, 
                                     'body': body,
                                     'score': 0,
@@ -92,11 +91,11 @@ def addQuestion():
                                     'media': media,
                                     'tags': tags,
                                     'accepted_answer_id': None,
-                                    'username': str(username),
+                                    'username': username,
                                     'realIP': request.remote_addr
                                 }
         pid = questionTable.insert(question)
-        pid = str(pid)
+        pid = pid
         for item in media:
             mediaTable.insert({"mediaID": item, 'pid': pid})
 
@@ -104,14 +103,11 @@ def addQuestion():
 
 @bp.route('/questions/<IDD>', methods=[ "GET", 'DELETE'])
 def getQuestion(IDD):
-    pid = ObjectId(str(IDD))
+    pid = ObjectId(IDD)
     if request.method == 'GET':
-        #print("=========================QUESTION/ID====GET===============================")
-        result = questionTable.find_one({"_id": pid})
 
+        result = questionTable.find_one({"_id": pid})
         if( result == None):
-            print("QUESTION ID DOESNT EXIST")
-            print(request.remote_addr)
             return responseOK({'status':'error', 'error': 'id doesnt exist'})
         ip = request.remote_addr
         ip = str(ip)
@@ -127,43 +123,13 @@ def getQuestion(IDD):
             if ipTable.find_one({'ipN': name , 'pid':pid} ) == None:
                 ipTable.insert({'ipN' : name, 'pid': pid})
                 plus = 1
-        
         count = result['view_count']
-        questionTable.update_one({'_id':pid}, { "$set": {'view_count': count + plus}} )
-        result = questionTable.find_one({'_id':pid})
-        score = result['score']
-        view_count = result['view_count']
-        answer_count = result['answer_count']
-        media = result['media']
-        tags = result['tags']
-        title = result['title']
-        body = result['body']
-        pid = str(result['_id'])
-        timestamp = result['timestamp']
+        if plus == 1:
+            questionTable.update_one({'_id':pid}, { "$set": {'view_count': count + plus}} )
         
-        user = result['user']['username']
-        reputation = userTable.find_one({'username':user})
-        reputation = reputation['reputation']
-
-        question =  {   'status':'OK',
-                            "question": {
-                                    "score": score,
-                                    "view_count": view_count,
-                                    "answer_count": 0,
-                                    "media": media,
-                                    "tags": tags,
-                                    "accepted_answer_id": result['accepted_answer_id'],
-                                    "title": title,
-                                    "body": body,
-                                    "id": pid,
-                                    "timestamp": timestamp,
-                                    "user": {
-                                                'username': user,
-                                                'reputation' :reputation
-                                            }
-                                    }
-                        }
-        return responseOK(question)
+        res = es.get(index="question", doc_type='place' ,id=IDD)
+        res['_source']["id"] = IDD
+        return responseOK({'status': 'OK', 'question':res['_source'] })
 
     elif request.method == 'DELETE':
         print("=========================QUESTION/ID====DELETE===============================")
@@ -173,7 +139,7 @@ def getQuestion(IDD):
             print('Add Question Wrong SESSION')     
             return responseNO({'status': 'error', 'error': 'Wrong user session'})
         else:
-            pid = ObjectId(str(IDD))
+            pid = ObjectId(IDD)
             result = questionTable.find_one({'_id':pid})
             if( result == None):
                 print('FAILED DELTED, invalid QUESTIONS ID')
@@ -215,7 +181,7 @@ def addAnswer(IDD):
             print("NO session answer")
             return responseNO({'status': 'error','error': 'not logged in'})
         
-        pid = ObjectId(str(IDD))
+        pid = ObjectId(IDD)
         body = request.json['body']
         media = []
         
@@ -235,7 +201,7 @@ def addAnswer(IDD):
                             return responseNO({ 'status': 'error', 'error':"media does not belong to poster"}) 
 
         userID = userTable.find_one({'username': request.cookies.get('token')})['_id']
-        userID = str(userID)
+        userID = userID
         
         answer =    {
                     'pid': pid,
@@ -249,7 +215,7 @@ def addAnswer(IDD):
                     'username': request.cookies.get('token')
                     }
         aid = answerTable.insert(answer)
-        aid = str(aid)
+        aid = aid
 
         if len(media) != 0:
             for item in media:
@@ -259,19 +225,19 @@ def addAnswer(IDD):
                     else:
                         return responseNO({ 'status': 'error', 'error':"media ID already exists"}) 
 
-        return responseOK({'status': 'OK', 'id': str(aid)})
+        return responseOK({'status': 'OK', 'id': aid})
 
 @bp.route('/questions/<IDD>/answers', methods=['GET'])
 def getAnswers(IDD):
     if request.method == 'GET':
         
-        pid = ObjectId(str(IDD))
+        pid = ObjectId(IDD)
         allAnswers = answerTable.find({'pid': pid})
         answerReturn = {"status":"OK", 'answers': []}
 
         for result in allAnswers:
             temp =  {
-                        'id': str(result['_id']),
+                        'id': result['_id'],
                         'user': result['user'],
                         'body': result['body'],
                         'score': result['score'],
@@ -287,7 +253,7 @@ def getAnswers(IDD):
 @bp.route('/questions/<IDD>/upvote', methods=['POST'])
 def upvoteQuestion(IDD):
     if request.method == 'POST':
-        pid = str(IDD)
+        pid = IDD
         name = request.cookies.get('token')
         if not name:
             print('upvote Wrong session')
@@ -297,7 +263,7 @@ def upvoteQuestion(IDD):
         user = request.cookies.get('token')
         print ([pid, upvote, user]  )
         result = upvoteTable.find_one({'username' : user, 'pid': pid} )
-        questionResult = questionTable.find_one( {'_id': ObjectId(str(IDD)) })
+        questionResult = questionTable.find_one( {'_id': ObjectId(IDD) })
         realUser = questionResult['username']
         if upvote == True:
             if result == None:
@@ -331,7 +297,7 @@ def upvoteQuestion(IDD):
 @bp.route('/answers/<IDD>/upvote', methods=['POST'])
 def upvoteAnswer(IDD):
     if request.method == 'POST':
-        aid = str(IDD)
+        aid = IDD
         
         name = request.cookies.get('token')
         if not name:
@@ -341,7 +307,7 @@ def upvoteAnswer(IDD):
         user = request.cookies.get('token')
         print ([aid, upvote, user]  )
         result = upvoteTable.find_one({'username' : user, 'aid': aid} )
-        answerResult = answerTable.find_one( {'_id': ObjectId(str(IDD)) })
+        answerResult = answerTable.find_one( {'_id': ObjectId(IDD) })
         if answerResult == None:
             return responseNO({'status': 'error','error': 'ID Doesnt exist'})
         realUser = answerResult['username']
@@ -382,7 +348,7 @@ def acceptAnswer(IDD):
         name = request.cookies.get('token')
         if not name:
             return responseNO({'status': 'error','error': 'Please login to accept answer'})
-        aid = ObjectId(str(IDD))
+        aid = ObjectId(IDD)
         print('--------------------------------------ACCEPT--------------------------')
         answer = answerTable.find_one({'_id': aid})
         if answer == None:

@@ -62,25 +62,14 @@ def index():
 
 
 def ppp():
-   from datetime import datetime
    from elasticsearch import Elasticsearch
-   from elasticsearch_dsl import Search
-   es = Elasticsearch([{'host': '130.245.170.76', 'port': 9200}])
+   es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+   res = es.get(index="question", id="5cdb3e3b1esa91a7782c7d4d6")
 
-   es.indices.delete(index='questions', ignore=[400, 404])
-   print 'de'
-   doc = {
-      'title': 'New15',
-      'body': 'Elasticsearch: cool. bonsai cool.',
-      'timestamp': datetime.now(),
-      'tags': ['231', '23', '1232'],
-      'media': ['mm','123'],
-      'accepted_answer_id' :123
-   }
-   
-   timestamp = datetime.now()
-   # es.index(index="question", doc_type='place', id='123', body=doc)
-   '''
+   print(res['_source'])
+
+# es.index(index="question", doc_type='place', id='123', body=doc)
+'''
    must_not ={  "should":[] ,"must": [  { "range": { "timestamp": { "lte": timestamp }}}], 'must_not': [] }
    must_not['should'].append(   {"match" : {"title": "New15" }}    )
    must_not['should'].append(   {"match" : {"body": "this cool is 123" }} )
@@ -122,6 +111,24 @@ def ppp():
                # "view_count": q["_source"]['view_count']
             }
       print( q['_source'])
+
+
+
+
+
+
+
+
+      es.indices.delete(index='questions', ignore=[400, 404])
+   print 'de'
+   doc = {
+      'title': 'New15',
+      'body': 'Elasticsearch: cool. bonsai cool.',
+      'timestamp': datetime.now(),
+      'tags': ['231', '23', '1232'],
+      'media': ['mm','123'],
+      'accepted_answer_id' :123
+   }
       '''
 
 # clearMe()
