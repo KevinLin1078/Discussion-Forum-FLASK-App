@@ -20,13 +20,6 @@ upvoteTable = db['upvote']
 mediaTable = db['mediaID']
 
 
-from cassandra.cluster import Cluster
-cluster = Cluster(['130.245.170.76'])
-cassSession = cluster.connect(keyspace='hw5')
-
-from elasticsearch import Elasticsearch
-es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
-
 @bp.app_errorhandler(404)
 def handle404(error):
     return responseOK({'status': 'OK'})
@@ -159,74 +152,12 @@ def addAnswer(IDD):
         if not name:
             print("NO session answer")
             return responseNO({'status': 'error','error': 'not logged in'})
-        
-        pid = ObjectId(str(IDD))
-        body = request.json['body']
-        media = []
-        
-        if ('media' in request.json):
-            media = request.json['media']
-            print('Answers/ADD media: ++++++++++++++++++++++ANSWER++++++MEDIA ', media)
-            if len(media) != 0:
-                for item in media:
-                        is_found = mediaTable.find_one({"mediaID": item})
-                        if is_found != None: #if id exist already, return error
-                            return responseOK({ 'status': 'error', 'error':"media ID already exists"}) 
-                        
-                        query = "SELECT * FROM imgs WHERE fileID = '" + item + "';"
-                        row = cassSession.execute(query)[0]
-                        name = row[3]
-                        if name != request.cookies.get('token'):
-                            return responseNO({ 'status': 'error', 'error':"media does not belong to poster"}) 
-
-        userID = userTable.find_one({'username': request.cookies.get('token')})['_id']
-        userID = str(userID)
-        
-        answer =    {
-                    'pid': pid,
-                    'body':body,
-                    'media': media,
-                    'user': request.cookies.get('token'),
-                    'userID':  userID,
-                    'timestamp': (time.time()),
-                    'is_accepted': False,
-                    'score' : 0,
-                    'username': request.cookies.get('token')
-                    }
-        aid = answerTable.insert(answer)
-        aid = str(aid)
-
-        if len(media) != 0:
-            for item in media:
-                    is_found = mediaTable.find_one({"mediaID": item})
-                    if is_found == None:
-                        mediaTable.insert({"mediaID": item, 'aid': aid})
-                    else:
-                        return responseNO({ 'status': 'error', 'error':"media ID already exists"}) 
-
-        return responseOK({'status': 'OK', 'id': str(aid)})
+        return responseOK({'status': 'OK', 'id': 'Anfhrk33kgerlf3Dedfe'})
 
 @bp.route('/questions/<IDD>/answers', methods=['GET'])
 def getAnswers(IDD):
     if request.method == 'GET':
-        
-        pid = ObjectId(str(IDD))
-        allAnswers = answerTable.find({'pid': pid})
         answerReturn = {"status":"OK", 'answers': []}
-
-        for result in allAnswers:
-            temp =  {
-                        'id': str(result['_id']),
-                        'user': result['user'],
-                        'body': result['body'],
-                        'score': result['score'],
-                        'is_accepted': result['is_accepted'],
-                        'timestamp': result['timestamp'],
-                        'media': result['media']
-                    }
-            answerReturn['answers'].append(temp)
-        #print(answerReturn)
-
         return responseOK(answerReturn)
 
 @bp.route('/questions/<IDD>/upvote', methods=['POST'])
@@ -235,42 +166,7 @@ def upvoteQuestion(IDD):
         pid = str(IDD)
         name = request.cookies.get('token')
         if not name:
-            print('upvote Wrong session')
             return responseNO({'status': 'error','error': 'Please login to upvote question'})
-        print('===========================/questions/<IDD>/upvote===================================')
-        upvote = request.json['upvote']
-        user = request.cookies.get('token')
-        print ([pid, upvote, user]  )
-        result = upvoteTable.find_one({'username' : user, 'pid': pid} )
-        questionResult = questionTable.find_one( {'_id': ObjectId(str(IDD)) })
-        realUser = questionResult['username']
-        if upvote == True:
-            if result == None:
-                upvoteTable.insert({'username': user, 'pid': pid, 'vote': 1})
-                updateQuestionScore(pid, realUser, 1, 1)
-            elif result['vote'] ==  1:
-                upvoteTable.update_one({'username':user, 'pid': pid} , { "$set": {'vote': 0} } )
-                updateQuestionScore(pid, realUser, -1,-1)   
-            elif result['vote'] ==  0:
-                upvoteTable.update_one({'username':user, 'pid': pid} , { "$set": {'vote': 1} } )
-                updateQuestionScore(pid, realUser, 1, 1)
-            elif result['vote'] == -1:
-                upvoteTable.update_one({'username':user, 'pid': pid} , { "$set": {'vote': 1} } )
-                updateQuestionScore(pid, realUser, 2, 1)
-        #################################################FALSE##########################################
-        elif upvote == False:
-            if result == None:
-                upvoteTable.insert({'username': user, 'pid': pid, 'vote': -1})
-                updateQuestionScore(pid, realUser, -1, -1)
-            elif result['vote'] ==  -1:
-                upvoteTable.update_one({'username':user, 'pid': pid} , { "$set": {'vote': 0} } )            
-                updateQuestionScore(pid, realUser, 1, 1)    
-            elif result['vote'] ==  0:
-                upvoteTable.update_one({'username':user, 'pid': pid} , { "$set": {'vote': -1} } )
-                updateQuestionScore(pid, realUser, -1, -1)
-            elif result['vote'] == 1:
-                upvoteTable.update_one({'username':user, 'pid': pid} , { "$set": {'vote': -1} } )
-                updateQuestionScore(pid, realUser, -2, -1)
         return responseOK({'status': 'OK'})
 
 @bp.route('/answers/<IDD>/upvote', methods=['POST'])
@@ -281,70 +177,14 @@ def upvoteAnswer(IDD):
         name = request.cookies.get('token')
         if not name:
             return responseNO({'status': 'error','error': 'Please login to upvote answer'})
-        print('===========================/answers/<IDD>/upvote===================================')
-        upvote = request.json['upvote']
-        user = request.cookies.get('token')
-        print ([aid, upvote, user]  )
-        result = upvoteTable.find_one({'username' : user, 'aid': aid} )
-        answerResult = answerTable.find_one( {'_id': ObjectId(str(IDD)) })
-        if answerResult == None:
-            return responseNO({'status': 'error','error': 'ID Doesnt exist'})
-        realUser = answerResult['username']
-        if upvote == True:
-            if result == None:
-                upvoteTable.insert({'username': user, 'aid': aid, 'vote': 1})
-                updateAnswerScore(aid, realUser, 1,1)   
-            elif result['vote'] ==  1:
-                upvoteTable.update_one({'username':user, 'aid': aid} , { "$set": {'vote': 0} } )
-                updateAnswerScore(aid, realUser, -1,-1) 
-            elif result['vote'] ==  0:
-                upvoteTable.update_one({'username':user, 'aid': aid} , { "$set": {'vote': 1} } )
-                updateAnswerScore(aid, realUser, 1, 1)
-            elif result['vote'] == -1:
-                upvoteTable.update_one({'username':user, 'aid': aid} , { "$set": {'vote': 1} } )
-                updateAnswerScore(aid, realUser, 2, 1)
-        #################################################FALSE##########################################
-        elif upvote == False:
-            if result == None:
-                upvoteTable.insert({'username': user, 'aid': aid, 'vote': -1})
-                updateAnswerScore(aid, realUser, -1, -1)
-            elif result['vote'] ==  -1:
-                upvoteTable.update_one({'username':user, 'aid': aid} , { "$set": {'vote': 0} } )            
-                updateAnswerScore(aid, realUser, 1, 1)  
-            elif result['vote'] ==  0:
-                upvoteTable.update_one({'username':user, 'aid': aid} , { "$set": {'vote': -1} } )
-                updateAnswerScore(aid, realUser, -1, -1)
-            elif result['vote'] == 1:
-                upvoteTable.update_one({'username':user, 'aid': aid} , { "$set": {'vote': -1} } )
-                updateAnswerScore(aid, realUser, -2, -1)
         return responseOK({'status': 'OK'})
-
-
 
 @bp.route('/answers/<IDD>/accept', methods=['POST'])
 def acceptAnswer(IDD):
     if request.method == 'POST':
         name = request.cookies.get('token')
         if not name:
-            return responseNO({'status': 'error','error': 'Please login to accept answer'})
-        aid = ObjectId(str(IDD))
-        print('--------------------------------------ACCEPT--------------------------')
-        answer = answerTable.find_one({'_id': aid})
-        if answer == None:
-            return responseNO({'status': 'error','error': 'ID Doesnt exist'})
-        pid = answer['pid']
-        
-        question = questionTable.find_one({'_id': pid })
-        poster = question['username']
-        if request.cookies.get('token') != poster:
-            return responseNO({'status': 'error', 'error': 'Not original poster'})
-        
-        qq = questionTable.find_one({'_id': pid })
-        if qq['accepted_answer_id'] != None: #if answer already revolved the question
-            return responseNO({'status': 'error', 'error':'Question already resolved'}) 
-
-        answerTable.update_one({'_id': aid}, { "$set": {'is_accepted': True} })
-        questionTable.update_one({'_id': pid }, { "$set": {'accepted_answer_id': IDD}} )
+            return responseNO({'status': 'error','error': 'Please login to accept answer'})       
     
     return responseOK({'status': 'OK'})
 
@@ -380,38 +220,3 @@ def responseNO(stat):
     return respond
 
 
-def updateQuestionScore(pid, user, qval, uval):
-    question = questionTable.find_one( {'_id': ObjectId(pid)} )
-    new_score = question['score'] + qval                            #plus one to question
-    questionTable.update_one( {'_id': ObjectId(pid)} , { "$set": {'score': new_score} } )
-    
-    user_filter = userTable.find_one({'username': user})    #plus one to user reputation
-    new_rep = user_filter['reputation']
-    if new_rep == 1 and uval < 0:
-        print('CANNOT ADD TO USER REP ', uval)
-        return
-    new_repp = new_rep + uval
-    print("NEW REPP +++++++++++++++++ " ,new_repp )
-    userTable.update_one({'username': user}, { "$set": {'reputation': new_repp} } )
-
-
-def updateAnswerScore(aid, user, aval, uval):
-    answer = answerTable.find_one( {'_id': ObjectId(aid)} )
-    new_score = answer['score'] + aval                          #plus one to answer
-    answerTable.update_one( {'_id': ObjectId(aid)} , { "$set": {'score': new_score} } )
-    
-    user_filter = userTable.find_one({'username': user})    #plus one to user reputation
-    new_rep = user_filter['reputation']
-    if new_rep == 1 and uval < 0:
-        print('CANNOT ADD TO USER REP ', uval)
-        return
-    new_repp = new_rep + uval
-    userTable.update_one({'username': user}, { "$set": {'reputation': new_repp} } )
-
-
-
-def is_login(username, password):
-    user = userTable.find_one({'username': username, 'password': password})
-    if user == None:
-        return False
-    return True
