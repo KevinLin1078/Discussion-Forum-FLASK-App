@@ -25,7 +25,7 @@ cluster = Cluster(['130.245.170.76'])
 cassSession = cluster.connect(keyspace='hw5')
 
 from elasticsearch import Elasticsearch
-es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+es = Elasticsearch([{'host': '130.245.168.89', 'port': 9200}])
 
 @bp.app_errorhandler(404)
 def handle404(error):
