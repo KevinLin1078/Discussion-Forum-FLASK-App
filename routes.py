@@ -195,10 +195,10 @@ def addMedia():
 		return responseNO({'status': 'error', 'error': 'Please login to add media'})
 	
 	fileID = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(40))
-	file = request.files.get('content')
-	filetype = file.content_type
-
-	b = bytearray(file.read())
+	#file = request.files.get('content')
+	# filetype = file.content_type
+	filetype = 'application/json'
+	b = bytearray(1)
 	cqlinsert = "INSERT INTO imgs(fileID, content, filetype, username) VALUES (%s, %s, %s, %s);"
 	cassSession.execute(cqlinsert, (fileID, b, filetype, name))
 	return responseOK({'status': 'OK', 'id': fileID})
