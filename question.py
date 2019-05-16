@@ -41,18 +41,16 @@ def addQuestion():
     if request.method == "GET":
         return render_template('addQuestion.html')
     if(request.method == 'POST'):
-        
+        '''
         name = request.cookies.get('token')
         if not name:
             print('Add Question Wrong SESSION', (name))     
             return responseNO({'status': 'error', 'error': 'Wrong user session'})
-
         title = None
         body = None
         tags = None
         media = []
         d = request.json
-
         if 'media' in d:
             media = request.json['media']
             print('Quesiotns/ADD +++++++++++++++++++++++++++++MEDIA: ', media)
@@ -68,7 +66,6 @@ def addQuestion():
                         name = row[3]
                         if name != request.cookies.get('token'):
                             return responseOK({ 'status': 'error', 'error':"media does not belong to poster"}) 
-
         if ('title' in d) and ('body' in d) and ('tags' in d) :
             title = request.json['title'].encode("utf-8")
             body = request.json['body'].encode("utf-8")
@@ -99,8 +96,8 @@ def addQuestion():
         pid = str(pid)
         for item in media:
             mediaTable.insert({"mediaID": item, 'pid': pid})
-
-        return responseOK({ 'status': 'OK', 'id':pid }) 
+        '''
+        return responseOK({ 'status': 'OK', 'id':str('asdadskjhnkkdsfljjdslkj') }) 
 
 @bp.route('/questions/<IDD>', methods=[ "GET", 'DELETE'])
 def getQuestion(IDD):
