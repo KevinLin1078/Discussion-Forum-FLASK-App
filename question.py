@@ -25,7 +25,7 @@ cluster = Cluster(['130.245.170.76'])
 cassSession = cluster.connect(keyspace='hw5')
 
 from elasticsearch import Elasticsearch
-es = Elasticsearch([{'host': '130.245.168.89', 'port': 9200}])
+es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
 
 @bp.app_errorhandler(404)
 def handle404(error):
@@ -60,7 +60,7 @@ def addQuestion():
                         is_found = mediaTable.find_one({"mediaID": item})
                         if is_found:
                             print('Media ID FOUND IN ANOTHER QUESTION ')
-                            return responseOK({ 'status': 'error', 'error':"media ID already exists"}) 
+                            return responseNO({ 'status': 'error', 'error':"media ID already exists"}) 
                         
                         query = "SELECT * FROM imgs WHERE fileID = '" + item + "';"
                         row = cassSession.execute(query)[0]
@@ -95,11 +95,11 @@ def addQuestion():
                                     'realIP': request.remote_addr
                                 }
         pid = questionTable.insert(question)
-        pid = pid
+        pid = str(pid)
         for item in media:
             mediaTable.insert({"mediaID": item, 'pid': pid})
 
-        return responseOK({ 'status': 'OK', 'id':pid}) 
+        return responseOK({ 'status': 'OK', 'id':pid }) 
 
 @bp.route('/questions/<IDD>', methods=[ "GET", 'DELETE'])
 def getQuestion(IDD):
@@ -108,7 +108,7 @@ def getQuestion(IDD):
 
         result = questionTable.find_one({"_id": pid})
         if( result == None):
-            return responseOK({'status':'error', 'error': 'id doesnt exist'})
+            return responseNO({'status':'error', 'error': 'id doesnt exist'})
         ip = request.remote_addr
         ip = str(ip)
         plus = 0
@@ -123,14 +123,44 @@ def getQuestion(IDD):
             if ipTable.find_one({'ipN': name , 'pid':pid} ) == None:
                 ipTable.insert({'ipN' : name, 'pid': pid})
                 plus = 1
-        count = result['view_count']
-        if plus == 1:
-            questionTable.update_one({'_id':pid}, { "$set": {'view_count': count + plus}} )
         
-        res = es.get(index="question", doc_type='place' ,id=IDD)
-        res['_source']["id"] = IDD
-        return responseOK({'status': 'OK', 'question':res['_source'] })
+        count = result['view_count']
+        questionTable.update_one({'_id':pid}, { "$set": {'view_count': count + plus}} )
+        result = questionTable.find_one({'_id':pid})
+        score = result['score']
+        view_count = result['view_count']
+        answer_count = result['answer_count']
+        media = result['media']
+        tags = result['tags']
+        title = result['title']
+        body = result['body']
+        pid = str(result['_id'])
+        timestamp = result['timestamp']
+        
+        user = result['user']['username']
+        reputation = userTable.find_one({'username':user})
+        reputation = reputation['reputation']
 
+        question =  {   'status':'OK',
+                            "question": {
+                                    "score": score,
+                                    "view_count": view_count,
+                                    "answer_count": 0,
+                                    "media": media,
+                                    "tags": tags,
+                                    "accepted_answer_id": result['accepted_answer_id'],
+                                    "title": title,
+                                    "body": body,
+                                    "id": pid,
+                                    "timestamp": timestamp,
+                                    "user": {
+                                                'username': user,
+                                                'reputation' :reputation
+                                            }
+                                    }
+                        }
+        return responseOK(question)
+        
     elif request.method == 'DELETE':
         print("=========================QUESTION/ID====DELETE===============================")
         name = request.cookies.get('token')
@@ -165,8 +195,7 @@ def getQuestion(IDD):
                         query = "DELETE FROM imgs WHERE fileID = '" + i + "';"
                         print('=============', m)
                         row = cassSession.execute(query)
-
-
+                        
                 questionTable.delete_one({'_id': pid})
                 answerTable.delete_many({'pid': pid})
                 ipTable.delete_many({'pid': pid})
@@ -192,7 +221,7 @@ def addAnswer(IDD):
                 for item in media:
                         is_found = mediaTable.find_one({"mediaID": item})
                         if is_found != None: #if id exist already, return error
-                            return responseOK({ 'status': 'error', 'error':"media ID already exists"}) 
+                            return responseNO({ 'status': 'error', 'error':"media ID already exists"}) 
                         
                         query = "SELECT * FROM imgs WHERE fileID = '" + item + "';"
                         row = cassSession.execute(query)[0]
@@ -225,7 +254,7 @@ def addAnswer(IDD):
                     else:
                         return responseNO({ 'status': 'error', 'error':"media ID already exists"}) 
 
-        return responseOK({'status': 'OK', 'id': aid})
+        return responseOK({'status': 'OK', 'id': str(aid)})
 
 @bp.route('/questions/<IDD>/answers', methods=['GET'])
 def getAnswers(IDD):
@@ -237,7 +266,7 @@ def getAnswers(IDD):
 
         for result in allAnswers:
             temp =  {
-                        'id': result['_id'],
+                        'id': str(result['_id']),
                         'user': result['user'],
                         'body': result['body'],
                         'score': result['score'],
@@ -383,8 +412,49 @@ def searchOK():
 
 @bp.route('/search', methods=['POST'])
 def search():
-    if request.method == 'POST':   
-        answer = {'status' : 'OK', 'questions': []}
+    if request.method == 'POST':
+        print('--------------------------------Search-----------------------------')
+        timestamp = time.time()
+        if 'timestamp' in request.json:
+            timestamp = request.json['timestamp']
+        
+        limit = 25
+        if 'limit' in request.json:
+            limit = request.json['limit']
+
+        query = ''
+        if 'q' in request.json:
+            query = request.json['q'].encode("utf-8").strip().lower()
+
+        sort_by = 'score'
+        if 'sort_by' in request.json:
+            print('-------found sortby')
+            sort_by = request.json['sort_by']
+
+        tags = []
+        if 'tags' in request.json:
+            print('-------found tags')
+            tags = request.json['tags']
+
+        has_media = False
+        if 'has_media' in request.json:
+            print('-------found has_media')
+            has_media = request.json['has_media']
+
+        accepted = False
+        if 'accepted' in request.json:
+            print('-------found accept')
+            accepted = request.json['accepted']
+
+        print("query: ", query)
+        print("timestamp: ", timestamp )
+        print("limit: ", limit)
+        print("sort_by: ", sort_by)
+        print("tags: ", tags )
+        print("has_media: ", has_media)
+        print("accepted: ", accepted)
+        
+        answer = filter_with_query(query, timestamp, limit, sort_by, tags, has_media, accepted)
         return responseOK(answer)
 
 
@@ -430,6 +500,57 @@ def updateAnswerScore(aid, user, aval, uval):
     userTable.update_one({'username': user}, { "$set": {'reputation': new_repp} } )
 
 
+
+def filter_with_query(query, timestamp, limit, sort_by, tags, has_media, accepted):
+    must_not ={ "should":[] ,"must": [  { "range": { "timestamp": { "lte": timestamp }}}], 'must_not': [] }
+
+    if len(query) != 0:
+        must_not['should'].append(   {"match" : {"title": query }})
+        must_not['should'].append(   {"match" : {"body": query }})
+
+    if accepted == True:
+        must_not['must'].append({ "exists": {"field": "accepted_answer_id" }}   ) # field must exist
+
+    if has_media == True:
+        # must_not['must_not'].append( {"terms" : { "media" : [] }} )
+        must_not['must'].append( {"exists" : { "field" : 'media' }} )
+   
+    if tags != []:
+        for item in tags:
+            term = {"terms" : {'tags': [item]}} 
+            must_not['must'].append(term)
+   
+      
+    body={
+            "sort" : [{ 'timestamp' : {"order" : "desc"}}],
+            "from" : 0, "size" : limit,
+            "query" : {
+            "constant_score" : {
+                "filter" : { 
+                    "bool" : must_not
+                }
+            }
+            }
+        }
+
+    questFilter =[]
+    res = es.search(index="question", body=body)
+    for q in res['hits']['hits']:
+        temp = {    
+                'id': str(q['_id']),
+                'title':q["_source"]['title'],
+                'body': q["_source"]['body'],
+                'tags': q["_source"]['tags'],
+                'answer_count': 0,
+                'media': q["_source"]['media'],
+                'accepted_answer_id': q["_source"]['accepted_answer_id'] ,
+                'user':q["_source"]['user'],
+                'timestamp': q["_source"]['timestamp'],
+                'score': q["_source"]['score'],
+                "view_count": q["_source"]['view_count']
+            }
+        questFilter.append(temp)
+    return {'status' : 'OK', 'questions': questFilter, 'length': len(questFilter)}
 
 def is_login(username, password):
     user = userTable.find_one({'username': username, 'password': password})

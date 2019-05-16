@@ -14,21 +14,7 @@ def clearMe():
    upvoteTable = db['upvote']
    mediaTable = db['mediaID']
 
-   userTable.drop()
-   answerTable.drop()
-   questionTable.drop()
-   ipTable.drop() 
-   upvoteTable.drop()
-   mediaTable.drop()
-
-   userTable = db['user'] 
-   answerTable = db['answer']
-   questionTable = db['question']
-   ipTable = db['ip']
-   upvoteTable = db['upvote']
-   mediaTable = db['mediaID']
-
-
+   
    userTable.insert({})
    answerTable.insert({})
    questionTable.insert({})
