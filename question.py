@@ -418,6 +418,7 @@ def searchOK():
 def search():
     if request.method == 'POST':
         print('--------------------------------Search-----------------------------')
+        '''
         timestamp = time.time()
         if 'timestamp' in request.json:
             timestamp = request.json['timestamp']
@@ -457,7 +458,7 @@ def search():
         print("tags: ", tags )
         print("has_media: ", has_media)
         print("accepted: ", accepted)
-        
+        '''
         # answer = filter_with_query(query, timestamp, limit, sort_by, tags, has_media, accepted)
         return responseOK({'status' : 'OK', 'questions': []})
 
