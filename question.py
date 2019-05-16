@@ -41,7 +41,7 @@ def addQuestion():
     if request.method == "GET":
         return render_template('addQuestion.html')
     if(request.method == 'POST'):
-        
+        '''
         name = request.cookies.get('token')
         if not name:
             print('Add Question Wrong SESSION', (name))     
@@ -99,8 +99,8 @@ def addQuestion():
         pid = str(pid)
         for item in media:
             mediaTable.insert({"mediaID": item, 'pid': pid})
-
-        return responseOK({ 'status': 'OK', 'id':pid }) 
+        '''
+        return responseOK({ 'status': 'OK', 'id':str('asdadskjhnkkdsfljjdslkj') }) 
 
 @bp.route('/questions/<IDD>', methods=[ "GET", 'DELETE'])
 def getQuestion(IDD):
