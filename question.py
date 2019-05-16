@@ -378,6 +378,7 @@ def upvoteAnswer(IDD):
 @bp.route('/answers/<IDD>/accept', methods=['POST'])
 def acceptAnswer(IDD):
     if request.method == 'POST':
+        '''
         name = request.cookies.get('token')
         if not name:
             return responseNO({'status': 'error','error': 'Please login to accept answer'})
@@ -399,8 +400,8 @@ def acceptAnswer(IDD):
 
         answerTable.update_one({'_id': aid}, { "$set": {'is_accepted': True} })
         questionTable.update_one({'_id': pid }, { "$set": {'accepted_answer_id': IDD}} )
-    
-    return responseOK({'status': 'OK'})
+        '''
+        return responseOK({'status': 'OK'})
 
 
 @bp.route('/searchOK', methods=['GET'])
@@ -417,6 +418,7 @@ def searchOK():
 @bp.route('/search', methods=['POST'])
 def search():
     if request.method == 'POST':
+        '''
         print('--------------------------------Search-----------------------------')
         timestamp = time.time()
         if 'timestamp' in request.json:
@@ -457,9 +459,9 @@ def search():
         print("tags: ", tags )
         print("has_media: ", has_media)
         print("accepted: ", accepted)
-        
-        answer = filter_with_query(query, timestamp, limit, sort_by, tags, has_media, accepted)
-        return responseOK(answer)
+        '''
+        # answer = filter_with_query(query, timestamp, limit, sort_by, tags, has_media, accepted)
+        return responseOK({'status' : 'OK', 'questions': []} )
 
 
 def responseOK(stat):
@@ -554,7 +556,7 @@ def filter_with_query(query, timestamp, limit, sort_by, tags, has_media, accepte
                 "view_count": q["_source"]['view_count']
             }
         questFilter.append(temp)
-    return {'status' : 'OK', 'questions': questFilter, 'length': len(questFilter)}
+    return {'status' : 'OK', 'questions': questFilter}
 
 def is_login(username, password):
     user = userTable.find_one({'username': username, 'password': password})
