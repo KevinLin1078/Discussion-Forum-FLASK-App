@@ -52,7 +52,7 @@ def addQuestion():
         tags = None
         media = []
         d = request.json
-        '''
+
         if 'media' in d:
             media = request.json['media']
             print('Quesiotns/ADD +++++++++++++++++++++++++++++MEDIA: ', media)
@@ -68,7 +68,7 @@ def addQuestion():
                         name = row[3]
                         if name != request.cookies.get('token'):
                             return responseOK({ 'status': 'error', 'error':"media does not belong to poster"}) 
-        '''
+
         if ('title' in d) and ('body' in d) and ('tags' in d) :
             title = request.json['title'].encode("utf-8")
             body = request.json['body'].encode("utf-8")
@@ -77,11 +77,11 @@ def addQuestion():
             return responseOK({'status': 'error', 'error': 'Json key doesnt exist'})
                 
         username = request.cookies.get('token')
-        # user_filter = userTable.find_one({'username': username})
-        # reputation = user_filter['reputation']
+        user_filter = userTable.find_one({'username': username})
+        reputation = user_filter['reputation']
         question =  {
                                     'user': {   'username': username,
-                                                'reputation': 1
+                                                'reputation': reputation
                                             },
                                     'title': title, 
                                     'body': body,
@@ -97,10 +97,9 @@ def addQuestion():
                                 }
         pid = questionTable.insert(question)
         pid = str(pid)
-        '''
         for item in media:
             mediaTable.insert({"mediaID": item, 'pid': pid})
-        '''
+
         return responseOK({ 'status': 'OK', 'id':pid }) 
 
 @bp.route('/questions/<IDD>', methods=[ "GET", 'DELETE'])
@@ -504,7 +503,6 @@ def updateAnswerScore(aid, user, aval, uval):
 
 
 def filter_with_query(query, timestamp, limit, sort_by, tags, has_media, accepted):
-    '''
     must_not ={ "should":[] ,"must": [  { "range": { "timestamp": { "lte": timestamp }}}], 'must_not': [] }
 
     if len(query) != 0:
@@ -553,8 +551,7 @@ def filter_with_query(query, timestamp, limit, sort_by, tags, has_media, accepte
                 "view_count": q["_source"]['view_count']
             }
         questFilter.append(temp)
-    '''
-    return {'status' : 'OK', 'questions': []}
+    return {'status' : 'OK', 'questions': questFilter}
 
 def is_login(username, password):
     user = userTable.find_one({'username': username, 'password': password})
