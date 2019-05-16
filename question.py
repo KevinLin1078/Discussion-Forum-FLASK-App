@@ -41,6 +41,7 @@ def addQuestion():
     if request.method == "GET":
         return render_template('addQuestion.html')
     if(request.method == 'POST'):
+        
         name = request.cookies.get('token')
         if not name:
             print('Add Question Wrong SESSION', (name))     
@@ -105,7 +106,7 @@ def addQuestion():
 def getQuestion(IDD):
     pid = ObjectId(IDD)
     if request.method == 'GET':
-
+        '''
         result = questionTable.find_one({"_id": pid})
         if( result == None):
             return responseNO({'status':'error', 'error': 'id doesnt exist'})
@@ -159,9 +160,12 @@ def getQuestion(IDD):
                                             }
                                     }
                         }
-        return responseOK(question)
+        '''
+        return responseOK({'status':'OK', 'question':[] })
         
     elif request.method == 'DELETE':
+        return responseOK({'status': 'OK'})
+        '''
         print("=========================QUESTION/ID====DELETE===============================")
         name = request.cookies.get('token')
         
@@ -199,12 +203,14 @@ def getQuestion(IDD):
                 questionTable.delete_one({'_id': pid})
                 answerTable.delete_many({'pid': pid})
                 ipTable.delete_many({'pid': pid})
-                return responseOK({'status': 'OK'})
-                
+            
+            return responseOK({'status': 'OK'})
+            '''    
 
 @bp.route('/questions/<IDD>/answers/add', methods=["POST", "GET"])
 def addAnswer(IDD):
     if request.method == 'POST':
+        '''
         name = request.cookies.get('token')
         if not name:
             print("NO session answer")
@@ -253,13 +259,14 @@ def addAnswer(IDD):
                         mediaTable.insert({"mediaID": item, 'aid': aid})
                     else:
                         return responseNO({ 'status': 'error', 'error':"media ID already exists"}) 
-
+        '''
+        aid = 'w23hfnmewrlkj45kl345'
         return responseOK({'status': 'OK', 'id': str(aid)})
 
 @bp.route('/questions/<IDD>/answers', methods=['GET'])
 def getAnswers(IDD):
     if request.method == 'GET':
-        
+        '''
         pid = ObjectId(IDD)
         allAnswers = answerTable.find({'pid': pid})
         answerReturn = {"status":"OK", 'answers': []}
@@ -276,7 +283,8 @@ def getAnswers(IDD):
                     }
             answerReturn['answers'].append(temp)
         #print(answerReturn)
-
+        '''
+        answerReturn = {"status":"OK", 'answers': []}
         return responseOK(answerReturn)
 
 @bp.route('/questions/<IDD>/upvote', methods=['POST'])
