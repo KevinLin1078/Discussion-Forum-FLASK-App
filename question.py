@@ -282,6 +282,7 @@ def getAnswers(IDD):
 @bp.route('/questions/<IDD>/upvote', methods=['POST'])
 def upvoteQuestion(IDD):
     if request.method == 'POST':
+        '''
         pid = IDD
         name = request.cookies.get('token')
         if not name:
@@ -321,11 +322,13 @@ def upvoteQuestion(IDD):
             elif result['vote'] == 1:
                 upvoteTable.update_one({'username':user, 'pid': pid} , { "$set": {'vote': -1} } )
                 updateQuestionScore(pid, realUser, -2, -1)
+        '''
         return responseOK({'status': 'OK'})
 
 @bp.route('/answers/<IDD>/upvote', methods=['POST'])
 def upvoteAnswer(IDD):
     if request.method == 'POST':
+        '''
         aid = IDD
         
         name = request.cookies.get('token')
@@ -367,6 +370,7 @@ def upvoteAnswer(IDD):
             elif result['vote'] == 1:
                 upvoteTable.update_one({'username':user, 'aid': aid} , { "$set": {'vote': -1} } )
                 updateAnswerScore(aid, realUser, -2, -1)
+        '''
         return responseOK({'status': 'OK'})
 
 

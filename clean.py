@@ -53,7 +53,17 @@ def ppp():
    res = es.get(index="question", id="5cdb3e3b1esa91a7782c7d4d6")
 
    print(res['_source'])
+'''
+from celery import Celery
+cel = Celery("clean", broker='pyamqp://guest@localhost//')
+def rabbit():
+   @cel.task
+   def rever(strr):
+      print("ookk")
+      return strr[::-1]
 
+   rever.delay('123')
+'''
 # es.index(index="question", doc_type='place', id='123', body=doc)
 '''
    must_not ={  "should":[] ,"must": [  { "range": { "timestamp": { "lte": timestamp }}}], 'must_not': [] }
