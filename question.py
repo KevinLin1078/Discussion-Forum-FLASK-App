@@ -41,7 +41,7 @@ def addQuestion():
     if request.method == "GET":
         return render_template('addQuestion.html')
     if(request.method == 'POST'):
-        '''
+        
         name = request.cookies.get('token')
         if not name:
             print('Add Question Wrong SESSION', (name))     
@@ -99,8 +99,8 @@ def addQuestion():
         pid = str(pid)
         for item in media:
             mediaTable.insert({"mediaID": item, 'pid': pid})
-        '''
-        return responseOK({ 'status': 'OK', 'id':str('asdadskjhnkkdsfljjdslkj') }) 
+
+        return responseOK({ 'status': 'OK', 'id':pid }) 
 
 @bp.route('/questions/<IDD>', methods=[ "GET", 'DELETE'])
 def getQuestion(IDD):
@@ -113,7 +113,6 @@ def getQuestion(IDD):
         ip = request.remote_addr
         ip = str(ip)
         plus = 0
-
         name = request.cookies.get('token')
         
         if not name:
@@ -141,7 +140,6 @@ def getQuestion(IDD):
         user = result['user']['username']
         reputation = userTable.find_one({'username':user})
         reputation = reputation['reputation']
-
         question =  {   'status':'OK',
                             "question": {
                                     "score": score,
@@ -178,7 +176,6 @@ def getQuestion(IDD):
             if( result == None):
                 print('FAILED DELTED, invalid QUESTIONS ID')
                 return responseNO({'status':'error','error':'Question does not exist'})
-
             username = result['user']['username']
             if name != username:
                 print('FAILED DELTED, user is not original')
@@ -234,7 +231,6 @@ def addAnswer(IDD):
                         name = row[3]
                         if name != request.cookies.get('token'):
                             return responseNO({ 'status': 'error', 'error':"media does not belong to poster"}) 
-
         userID = userTable.find_one({'username': request.cookies.get('token')})['_id']
         userID = userID
         
@@ -251,7 +247,6 @@ def addAnswer(IDD):
                     }
         aid = answerTable.insert(answer)
         aid = aid
-
         if len(media) != 0:
             for item in media:
                     is_found = mediaTable.find_one({"mediaID": item})
@@ -270,7 +265,6 @@ def getAnswers(IDD):
         pid = ObjectId(IDD)
         allAnswers = answerTable.find({'pid': pid})
         answerReturn = {"status":"OK", 'answers': []}
-
         for result in allAnswers:
             temp =  {
                         'id': str(result['_id']),
@@ -405,7 +399,6 @@ def acceptAnswer(IDD):
         qq = questionTable.find_one({'_id': pid })
         if qq['accepted_answer_id'] != None: #if answer already revolved the question
             return responseNO({'status': 'error', 'error':'Question already resolved'}) 
-
         answerTable.update_one({'_id': aid}, { "$set": {'is_accepted': True} })
         questionTable.update_one({'_id': pid }, { "$set": {'accepted_answer_id': IDD}} )
         '''
@@ -435,31 +428,25 @@ def search():
         limit = 25
         if 'limit' in request.json:
             limit = request.json['limit']
-
         query = ''
         if 'q' in request.json:
             query = request.json['q'].encode("utf-8").strip().lower()
-
         sort_by = 'score'
         if 'sort_by' in request.json:
             print('-------found sortby')
             sort_by = request.json['sort_by']
-
         tags = []
         if 'tags' in request.json:
             print('-------found tags')
             tags = request.json['tags']
-
         has_media = False
         if 'has_media' in request.json:
             print('-------found has_media')
             has_media = request.json['has_media']
-
         accepted = False
         if 'accepted' in request.json:
             print('-------found accept')
             accepted = request.json['accepted']
-
         print("query: ", query)
         print("timestamp: ", timestamp )
         print("limit: ", limit)
@@ -516,6 +503,7 @@ def updateAnswerScore(aid, user, aval, uval):
 
 
 def filter_with_query(query, timestamp, limit, sort_by, tags, has_media, accepted):
+    '''
     must_not ={ "should":[] ,"must": [  { "range": { "timestamp": { "lte": timestamp }}}], 'must_not': [] }
 
     if len(query) != 0:
@@ -564,7 +552,8 @@ def filter_with_query(query, timestamp, limit, sort_by, tags, has_media, accepte
                 "view_count": q["_source"]['view_count']
             }
         questFilter.append(temp)
-    return {'status' : 'OK', 'questions': questFilter}
+    '''
+    return {'status' : 'OK', 'questions': []}
 
 def is_login(username, password):
     user = userTable.find_one({'username': username, 'password': password})
