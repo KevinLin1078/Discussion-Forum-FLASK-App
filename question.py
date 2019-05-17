@@ -260,10 +260,10 @@ def addAnswer(IDD):
 def getAnswers(IDD):
     if request.method == 'GET':
         
-        pid = ObjectId(IDD)
-        allAnswers = answerTable.find({'pid': pid})
+        # pid = ObjectId(IDD)
+        # allAnswers = answerTable.find({'pid': pid})
         answerReturn = {"status":"OK", 'answers': []}
-
+        '''
         for result in allAnswers:
             temp =  {
                         'id': str(result['_id']),
@@ -275,8 +275,7 @@ def getAnswers(IDD):
                         'media': result['media']
                     }
             answerReturn['answers'].append(temp)
-        #print(answerReturn)
-
+        '''
         return responseOK(answerReturn)
 
 @bp.route('/questions/<IDD>/upvote', methods=['POST'])
@@ -378,6 +377,7 @@ def upvoteAnswer(IDD):
 @bp.route('/answers/<IDD>/accept', methods=['POST'])
 def acceptAnswer(IDD):
     if request.method == 'POST':
+        '''
         name = request.cookies.get('token')
         if not name:
             return responseNO({'status': 'error','error': 'Please login to accept answer'})
@@ -399,7 +399,7 @@ def acceptAnswer(IDD):
 
         answerTable.update_one({'_id': aid}, { "$set": {'is_accepted': True} })
         questionTable.update_one({'_id': pid }, { "$set": {'accepted_answer_id': IDD}} )
-    
+    '''
     return responseOK({'status': 'OK'})
 
 
