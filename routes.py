@@ -152,22 +152,24 @@ def getUser(getName):
 @bp.route('/user/<getName>/questions', methods=["GET"])
 def getUserQuestions(getName):
 	if request.method == 'GET':
+		'''
 		username = str(getName)
 		print(username)
 		result = userTable.find_one({'username':username})
 		if result == None:
 			return responseNO({'status': 'error', 'error': 'USER DOESNT EXIST'})
 		allQuestions = questionTable.find({ 'username': username } )
+		'''
 		questionReturn = {'status':'OK', 'questions': [] }
 
-		for result in allQuestions:
-			questionReturn['questions'].append(str(result['_id']))
-		
+		# for result in allQuestions:
+		# 	questionReturn['questions'].append(str(result['_id']))
 		return responseOK(questionReturn)
 
 @bp.route('/user/<getName>/answers', methods=["GET"])
 def getUserAnnswer(getName):
 	if request.method == 'GET':
+		'''
 		username = str(getName)
 		print(username)
 		result = userTable.find_one({'username':username})
@@ -175,10 +177,11 @@ def getUserAnnswer(getName):
 			print("/user/<getName>/answers : USER DOESNT EXIST")
 			return responseOK({'status': 'error'})
 		allAnswers = answerTable.find({ 'username': username } )
+		'''
 		answerReturn = {'status':'OK', 'answers': [] }
 
-		for result in allAnswers:
-			answerReturn['answers'].append(str(result['_id']))
+		# for result in allAnswers:
+		# 	answerReturn['answers'].append(str(result['_id']))
 		return responseOK(answerReturn)
 
 @app.template_filter('ctime')
