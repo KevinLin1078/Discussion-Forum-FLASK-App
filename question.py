@@ -260,10 +260,10 @@ def addAnswer(IDD):
 def getAnswers(IDD):
     if request.method == 'GET':
         
-        # pid = ObjectId(IDD)
-        # allAnswers = answerTable.find({'pid': pid})
+        pid = ObjectId(IDD)
+        allAnswers = answerTable.find({'pid': pid})
         answerReturn = {"status":"OK", 'answers': []}
-        '''
+
         for result in allAnswers:
             temp =  {
                         'id': str(result['_id']),
@@ -275,7 +275,8 @@ def getAnswers(IDD):
                         'media': result['media']
                     }
             answerReturn['answers'].append(temp)
-        '''
+        #print(answerReturn)
+
         return responseOK(answerReturn)
 
 @bp.route('/questions/<IDD>/upvote', methods=['POST'])
@@ -377,7 +378,6 @@ def upvoteAnswer(IDD):
 @bp.route('/answers/<IDD>/accept', methods=['POST'])
 def acceptAnswer(IDD):
     if request.method == 'POST':
-        '''
         name = request.cookies.get('token')
         if not name:
             return responseNO({'status': 'error','error': 'Please login to accept answer'})
@@ -399,7 +399,7 @@ def acceptAnswer(IDD):
 
         answerTable.update_one({'_id': aid}, { "$set": {'is_accepted': True} })
         questionTable.update_one({'_id': pid }, { "$set": {'accepted_answer_id': IDD}} )
-    '''
+    
     return responseOK({'status': 'OK'})
 
 
@@ -426,31 +426,25 @@ def search():
         limit = 25
         if 'limit' in request.json:
             limit = request.json['limit']
-
         query = ''
         if 'q' in request.json:
             query = request.json['q'].encode("utf-8").strip().lower()
-
         sort_by = 'score'
         if 'sort_by' in request.json:
             print('-------found sortby')
             sort_by = request.json['sort_by']
-
         tags = []
         if 'tags' in request.json:
             print('-------found tags')
             tags = request.json['tags']
-
         has_media = False
         if 'has_media' in request.json:
             print('-------found has_media')
             has_media = request.json['has_media']
-
         accepted = False
         if 'accepted' in request.json:
             print('-------found accept')
             accepted = request.json['accepted']
-
         print("query: ", query)
         print("timestamp: ", timestamp )
         print("limit: ", limit)

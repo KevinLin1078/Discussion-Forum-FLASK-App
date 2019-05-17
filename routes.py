@@ -152,7 +152,6 @@ def getUser(getName):
 @bp.route('/user/<getName>/questions', methods=["GET"])
 def getUserQuestions(getName):
 	if request.method == 'GET':
-		'''
 		username = str(getName)
 		print(username)
 		result = userTable.find_one({'username':username})
@@ -163,13 +162,12 @@ def getUserQuestions(getName):
 
 		for result in allQuestions:
 			questionReturn['questions'].append(str(result['_id']))
-		'''
-		return responseOK( {'status':'OK', 'questions': [] } )
+		
+		return responseOK(questionReturn)
 
 @bp.route('/user/<getName>/answers', methods=["GET"])
 def getUserAnnswer(getName):
 	if request.method == 'GET':
-		'''
 		username = str(getName)
 		print(username)
 		result = userTable.find_one({'username':username})
@@ -181,8 +179,7 @@ def getUserAnnswer(getName):
 
 		for result in allAnswers:
 			answerReturn['answers'].append(str(result['_id']))
-		'''
-		return responseOK({'status':'OK', 'answers': [] })
+		return responseOK(answerReturn)
 
 @app.template_filter('ctime')
 def timectime(s):
